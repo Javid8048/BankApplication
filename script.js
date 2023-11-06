@@ -75,6 +75,35 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 
 /////////////////////////////////////////////////
 
+//user login 
+  const createUserId = (acc)=> {
+    acc.forEach((val) =>  {
+      val.userName = val.owner.toLowerCase().split(" ").map(val => val[0]).join("");
+    });
+  };
+  createUserId(accounts);
+//user login
+
+//total balance only of account1
+const totalBalance = (mov)=> {
+  const balance = mov.reduce((acc, val, i, ind) => {
+    return acc + val
+  }, 0 );
+  labelBalance.textContent = balance+"€";
+}
+totalBalance(account1.movements)
+
+//income balance
+const calculateBalanceSummery = (amt) => {
+  const incomeAmt = amt.filter(val => val > 0).reduce((acc, v) => acc+v);
+  const outgoingAmt = amt.filter(val => val < 0).reduce((acc, v)=> acc+v);
+  const intrestAmt = amt.filter(val => val > 0).map(val => val * 0.012).filter((val, i, arr) => val > 1).reduce((acc, val)=> acc+val);
+  labelSumIn.textContent = incomeAmt+" €"
+  labelSumOut.textContent = outgoingAmt+ " €";
+  labelSumInterest.textContent = intrestAmt+" €";
+};
+calculateBalanceSummery(account1.movements);
+
 containerApp.style.opacity = 1;
 
 movements.map((val, ind, arr)=> {
@@ -91,12 +120,21 @@ movements.map((val, ind, arr)=> {
 containerMovements.insertAdjacentHTML("afterbegin" ,html);
 });
 
+//just a dog task
 const JuliaArray = [3,5,2,12,17 ];
 const KatiArray = [4,1,15,8,.3];
 const JuliaNewArry = JuliaArray.slice(1, -1);
-console.log(JuliaNewArry);
 const totalDogsArray = [...KatiArray, ...JuliaNewArry];
+const remainingDogs = [];
 totalDogsArray.forEach((dogAge, numbr)=> {
   let dogType = dogAge <= 0.3 ? "Puppy" : "Adult";
-  console.log(`Dog ${numbr} is a `+dogType);
-  })
+  // console.log(`Dog ${numbr} is a `+dogType);
+  const humanage = dogAge <= 2 ? 2*dogAge : 16+dogAge*4;
+  remainingDogs.push(humanage);
+});
+const finalCountOfDogs = remainingDogs.filter((val, i)=> val > 18 ? val : null);
+let avgOfDogs = finalCountOfDogs.reduce((accu, val) => accu = accu + val, 0) / finalCountOfDogs.length;
+
+
+const eroToUsd = 1.1;
+const movementsUSD = movements.map((val) => Math.round(val*eroToUsd));
