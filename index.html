@@ -19,11 +19,12 @@
     <nav>
       <p class="welcome">Log in to get started</p>
       <img src="logo.png" alt="Logo" class="logo" />
-      <form class="login">
-        <input
+      <form class="login" name="loginForm">
+        <div class="loginDiv1">
+          <input
           type="text"
           placeholder="user"
-          class="login__input login__input--user"
+          class="login__input login__input--user" style="text-transform:uppercase"
         />
         <!-- In practice, use type="password" -->
         <input
@@ -32,7 +33,11 @@
           maxlength="4"
           class="login__input login__input--pin"
         />
-        <button class="login__btn">&rarr;</button>
+        <button class="login__btn login__btn_submit" >&rarr;</button> <!-- type="reset" | by default type is submit -->
+        </div>
+        <div class="loginDiv2 hidden">
+          <button class="login__btn logOut">Log out</button>
+        </div>
       </form>
     </nav>
 
