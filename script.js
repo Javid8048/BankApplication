@@ -10,10 +10,10 @@ const account1 = {
     '2019-12-23T07:42:02.383Z',
     '2020-01-28T09:15:04.904Z',
     '2020-04-01T10:17:24.185Z',
-    '2020-05-08T14:11:59.604Z',
     '2023-11-06T17:01:17.194Z',
     '2023-11-10T23:36:17.929Z',
     '2023-11-09T10:51:36.790Z',
+    '2023-11-10T10:51:36.790Z',
   ],
   currency: 'EUR',
   locale: 'pt-PT', // de-DE
@@ -67,18 +67,24 @@ const inputClosePin = document.querySelector('.form__input--pin');
 
 /////////////////////////////////////////////////
 // Functions
-const displayDateForMovements = (date) => {
-  const calcDate = (d) => (new Date().getTime() - d.getTime())/(1000*60*60*24);
-  const calcDateVal = Math.trunc(calcDate(date)); 
-  if(calcDateVal == 0) return "Today";
-  if(calcDateVal == 1) return "Yestarday";
-  if(calcDateVal <= 7) return `${calcDateVal} Before`;
-  const day = `${date.getDate()}`.padStart(2, "0");
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const year = `${date.getFullYear()}`;
-  return `${day}/${month}/${year}`;
+const displayDateForMovements = (date, user) => {
+  const calcDate = (d) => (new Date().getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+  const calcDateVal = Math.round(Math.abs(calcDate(date)));
+  if (calcDateVal == 0) return "Today";
+  if (calcDateVal == 1) return "Yestarday";
+  if (calcDateVal <= 7) return `${calcDateVal} Days Ago`;
+  // const day = `${date.getDate()}`.padStart(2, "0");
+  // const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  // const year = `${date.getFullYear()}`;
+  // return `${day}/${month}/${year}`;
+  const options = {
+    hour: "numeric", minute: 'numeric', weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric'
+  };
+  return new Intl.DateTimeFormat(user.locale, options).format(date)
+};
+const formatCurr = (value, locate, currency) => {
+  return new Intl.NumberFormat(locate, {style: "currency", currency: currency}).format(value)
 }
-
 
 const displayMovements = function (user, sort = false) {
   containerMovements.innerHTML = '';
@@ -86,13 +92,14 @@ const displayMovements = function (user, sort = false) {
   movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
     const date = new Date(user.movementsDates[user.movements.indexOf(mov)]);
-    const wholeDate = displayDateForMovements(date);
+    const wholeDate = displayDateForMovements(date, user);
+    const formattedMov = formatCurr(mov, user.locale, user.currency);
     const html = `
       <div class="movements__row">
         <div class="movements__type movements__type--${type}">${i + 1
       } ${type}</div>
     <div class="movements__date">${wholeDate}</div>
-        <div class="movements__value">${mov}€</div>
+        <div class="movements__value">${formattedMov}</div>
       </div>
     `;
     containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -100,15 +107,15 @@ const displayMovements = function (user, sort = false) {
 };
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${acc.balance} €`;
+  labelBalance.textContent = formatCurr(acc.balance, acc.locale, acc.currency);;
 };
 const calcDisplaySummary = function (acc) {
   const incomes = acc.movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov, 0);
   const out = acc.movements.filter(mov => mov < 0).reduce((acc, mov) => acc + mov, 0);
   const interest = acc.movements.filter(mov => mov > 0).map(deposit => (deposit * acc.interestRate) / 100).filter((int, i, arr) => int >= 1).reduce((acc, int) => acc + int, 0);
-  labelSumIn.textContent = `${incomes}€`;
-  labelSumOut.textContent = `${Math.abs(out)}€`;
-  labelSumInterest.textContent = `${interest}€`;
+  labelSumIn.textContent = formatCurr(incomes, acc.locale, acc.currency);
+  labelSumOut.textContent = formatCurr(Math.abs(out), acc.locale, acc.currency);
+  labelSumInterest.textContent = formatCurr(interest, acc.locale, acc.currency);
 };
 const createUsernames = (accs) => accs.forEach(acc => acc.username = acc.owner.toLowerCase().split(' ').map(name => name[0]).join(''));
 createUsernames(accounts);
@@ -128,8 +135,12 @@ btnLogin.addEventListener('click', function (e) {
   console.log(currentAccount);
   if (currentAccount?.pin === Number(inputLoginPin.value))
     labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`
-  const date = new Date(); const day = `${date.getDate()}`.padStart(2, "0"); const month = `${date.getMonth() + 1}`.padStart(2, "0"); const year = `${date.getFullYear()}`; const hour = `${date.getHours()}`.padStart(2, "0"); const minutes = `${date.getMinutes()}`.padStart(2, "0");
-  const wholeDate = `${day}/${month}/${year} ${hour}:${minutes}`;
+  // const date = new Date(); const day = `${date.getDate()}`.padStart(2, "0"); const month = `${date.getMonth() + 1}`.padStart(2, "0"); const year = `${date.getFullYear()}`; const hour = `${date.getHours()}`.padStart(2, "0"); const minutes = `${date.getMinutes()}`.padStart(2, "0");
+  // const wholeDate = `${day}/${month}/${year} ${hour}:${minutes}`;
+  const options = {
+    day: "numeric", month: "long", year: "numeric", hour: "numeric", minute: "numeric", weekday: "long"
+  }
+  const wholeDate = new Intl.DateTimeFormat(currentAccount.locale, options).format(new Date());
   labelDate.innerText = wholeDate;
   containerApp.style.opacity = 100;
   inputLoginUsername.value = inputLoginPin.value = '';
